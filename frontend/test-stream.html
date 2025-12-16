@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming Test</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #output { margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px; white-space: pre-wrap; }
+        #status { margin-top: 10px; color: #666; }
+        .chunk { color: #007bff; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Streaming Test</h1>
+    
+    <div>
+        <input type="password" id="token" placeholder="Paste JWT token here" style="width: 400px; padding: 8px;">
+        <button onclick="testStream()">Test Streaming</button>
+    </div>
+    
+    <div id="status"></div>
+    <div id="output"></div>
+
+    <script>
+        // Use config.js or fallback
+        const API_URL = window.CONFIG?.API_URL ? `${window.CONFIG.API_URL}/api` : '/api';
+        console.log('Test stream using API:', API_URL);
+        
+        async function testStream() {
+            const token = document.getElementById('token').value;
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+            
+            if (!token) {
+                alert('Please paste your JWT token');
+                return;
+            }
+            
+            output.innerHTML = '';
+            status.innerHTML = 'Streaming...';
+            
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        agentType: 'supervisor',
+                        message: 'What is 2+2? Be brief.',
+                        sessionId: 'test-' + Date.now(),
+                        stream: true
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                // Read stream in real-time
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || '';
+                    
+                    for (const line of lines) {
+                        if (!line.trim().startsWith('data: ')) continue;
+                        
+                        const jsonData = line.replace('data: ', '').trim();
+                        
+                        try {
+                            const event = JSON.parse(jsonData);
+                            
+                            if (event.type === 'start') {
+                                output.innerHTML += `<div class="chunk">🚀 Stream started (session: ${event.sessionId})</div>\n`;
+                            } else if (event.type === 'chunk') {
+                                output.innerHTML += `<span class="chunk">${event.text}</span>`;
+                            } else if (event.type === 'done') {
+                                output.innerHTML += `\n<div class="chunk">✅ Stream complete</div>`;
+                            } else if (event.type === 'error') {
+                                output.innerHTML += `\n<div class="error">❌ Error: ${event.error}</div>`;
+                            }
+                        } catch (e) {
+                            console.error('Parse error:', e, jsonData);
+                        }
+                    }
+                }
+                
+                status.innerHTML = 'Complete!';
+            } catch (err) {
+                console.error(err);
+                output.innerHTML += `\n<div class="error">❌ ${err.message}</div>`;
+                status.innerHTML = 'Failed!';
+            }
+        }
+        
+        // Auto-populate token if available
+        const storedToken = localStorage.getItem('jwt_token');
+        if (storedToken) {
+            document.getElementById('token').value = storedToken;
+        }
+    </script>
+</body>
+</html>

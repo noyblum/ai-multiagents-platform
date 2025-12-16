@@ -1,0 +1,7 @@
+# Lambda Layer build artifacts
+layer/
+*.zip
+
+# Terraform files
+.terraform/
+terraform.tfstate*

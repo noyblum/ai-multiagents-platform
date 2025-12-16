@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents Platform</title>
+  <script src="config.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #f7f7f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* LOGIN PAGE STYLES */
+    .login-page {
+      display: none;
+    }
+
+    .login-page.active {
+      display: flex;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-form {
+      width: 100%;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      font-size: 24px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: #202123;
+    }
+
+    .heading {
+      font-size: 32px;
+      font-weight: 600;
+      color: #202123;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subheading {
+      font-size: 16px;
+      color: #565869;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #202123;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 1px solid #d9d9e3;
+      border-radius: 8px;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #10a37f;
+      box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.1);
+    }
+
+    .error-message {
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 500;
+      background: #10a37f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .login-btn:hover:not(:disabled) {
+      background: #0d8967;
+    }
+
+    .login-btn:disabled {
+      background: #d9d9e3;
+      cursor: not-allowed;
+    }
+
+    .signup-text {
+      text-align: center;
+      font-size: 14px;
+      color: #565869;
+    }
+
+    .signup-text a {
+      color: #10a37f;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .signup-text a:hover {
+      text-decoration: underline;
+    }
+
+    .test-accounts {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #166534;
+    }
+
+    .test-accounts strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* CHAT PAGE STYLES */
+    .chat-page {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .chat-page.active {
+      display: flex;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #202123;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      color: #565869;
+    }
+
+    .logout-btn {
+      padding: 8px 16px;
+      background: #f7f7f8;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #202123;
+      transition: background 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: #ececf1;
+    }
+
+    /* Main Container */
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      max-width: 768px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Messages Area */
+    .messages-area {
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .empty-state {
+      text-align: center;
+      margin-top: 60px;
+    }
+
+    .empty-state h1 {
+      font-size: 32px;
+      font-weight: 600;
+      color: #202123;
+      margin-bottom: 48px;
+    }
+
+    /* Message */
+    .message {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .message.user {
+      background: white;
+    }
+
+    .message.assistant {
+      background: #f7f7f8;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #19c37d;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: #5436da;
+    }
+
+    .message-content {
+      flex: 1;
+      font-size: 16px;
+      line-height: 1.75;
+      color: #202123;
+    }
+
+    .agent-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #e7f3ff;
+      color: #0066cc;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    /* Input Container */
+    .input-container {
+      width: 100%;
+      max-width: 768px;
+      margin: 0 auto 40px;
+      padding: 0 20px;
+    }
+
+    .input-wrapper {
+      background: white;
+      border-radius: 24px;
+      border: 1px solid #d9d9e3;
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 12px;
+      box-shadow: 0 0 0 1px transparent;
+      transition: all 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #10a37f;
+      box-shadow: 0 0 0 1px #10a37f;
+    }
+
+    .input-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8e8ea0;
+      cursor: pointer;
+    }
+
+    .message-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      font-family: inherit;
+      color: #202123;
+      background: transparent;
+      resize: none;
+      max-height: 200px;
+      line-height: 1.5;
+    }
+
+    .message-input::placeholder {
+      color: #8e8ea0;
+    }
+
+    .submit-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #202123;
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: #000;
+    }
+
+    .submit-btn:disabled {
+      background: #d9d9e3;
+      cursor: not-allowed;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      gap: 4px;
+      padding: 12px;
+    }
+
+    .loading-dot {
+      width: 8px;
+      height: 8px;
+      background: #8e8ea0;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .loading-dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .loading-dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .empty-state h1 {
+        font-size: 24px;
+      }
+
+      .main-container {
+        padding: 12px;
+      }
+
+      .input-container {
+        padding: 0 12px;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN PAGE -->
+  <div class="login-page" id="loginPage">
+    <div class="login-container">
+      <div class="login-form">
+        <div class="logo-container">
+          <div class="logo">🤖</div>
+          <div class="logo-text">AI Agents Platform</div>
+        </div>
+        <h1 class="heading">Welcome back</h1>
+        <p class="subheading">Sign in to your account</p>
+        
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+            <div class="error-message" id="emailError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <div class="error-message" id="passwordError"></div>
+          </div>
+
+          <button type="submit" class="login-btn" id="loginBtn">Sign in</button>
+          <div class="error-message" id="generalError"></div>
+        </form>
+
+        <div class="test-accounts">
+          <strong>Test Accounts Available:</strong>
+          <p style="font-size: 12px; color: #666; margin: 8px 0;">
+            Use credentials provided by your administrator.
+          </p>
+          <div style="padding: 8px; background: #f0f7ff; border: 1px solid #0066cc; border-radius: 6px; font-size: 13px;">
+            💡 <strong>Demo Mode:</strong> Contact your administrator for test account credentials.
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT PAGE -->
+  <div class="chat-page" id="chatPage">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-text">AI Agents Platform</div>
+      <div class="user-menu">
+        <span class="user-name" id="userName"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Messages Area -->
+      <div class="messages-area" id="messagesArea">
+        <div class="empty-state" id="emptyState">
+          <h1>What are you working on?</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Container -->
+    <div class="input-container">
+      <div class="input-wrapper">
+        <div class="input-icon" onclick="showOptions()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+        <textarea 
+          class="message-input" 
+          id="messageInput" 
+          placeholder="Ask anything"
+          rows="1"
+          onkeydown="handleKeyDown(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <div class="input-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </div>
+        <button class="submit-btn" id="submitBtn" onclick="sendMessage()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentUser = null;
+    let token = null;
+    let conversationSessionId = null;
+    const messages = [];
+
+    // Initialize app
+    function initApp() {
+      token = localStorage.getItem('token');
+      currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+      if (token && currentUser.email) {
+        showChatPage();
+      } else {
+        showLoginPage();
+      }
+    }
+
+    // Show login page
+    function showLoginPage() {
+      document.getElementById('loginPage').classList.add('active');
+      document.getElementById('chatPage').classList.remove('active');
+    }
+
+    // Show chat page
+    function showChatPage() {
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('chatPage').classList.add('active');
+      document.getElementById('userName').textContent = currentUser.name || currentUser.email || 'User';
+    }
+
+    // Handle login
+    async function handleLogin(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const loginBtn = document.getElementById('loginBtn');
+      
+      // Clear errors
+      document.getElementById('emailError').classList.remove('show');
+      document.getElementById('passwordError').classList.remove('show');
+      document.getElementById('generalError').classList.remove('show');
+
+      if (!email || !password) {
+        if (!email) document.getElementById('emailError').textContent = 'Email is required';
+        if (!password) document.getElementById('passwordError').textContent = 'Password is required';
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch(`${window.CONFIG.API_URL}/api/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.token) {
+          // Save to localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify({
+            email: data.email,
+            name: data.name || data.email
+          }));
+
+          // Update global state
+          token = data.token;
+          currentUser = { email: data.email, name: data.name || data.email };
+
+          // Show chat page
+          showChatPage();
+        } else {
+          document.getElementById('generalError').textContent = data.error || 'Login failed';
+          document.getElementById('generalError').classList.add('show');
+        }
+      } catch (error) {
+        document.getElementById('generalError').textContent = error.message;
+        document.getElementById('generalError').classList.add('show');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      token = null;
+      currentUser = null;
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('messageInput').value = '';
+      document.getElementById('messagesArea').innerHTML = '<div class="empty-state" id="emptyState"><h1>What are you working on?</h1></div>';
+      conversationSessionId = null;
+      messages.length = 0;
+      showLoginPage();
+    }
+
+    // Auto-resize textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+
+    // Handle Enter key
+    function handleKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Send message
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+      
+      if (!message || !token) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      document.getElementById('emptyState').style.display = 'none';
+      addMessage('user', message);
+
+      const loadingId = addLoading();
+
+      try {
+        const response = await fetch(`${window.CONFIG.API_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            message: message,
+            agentType: 'supervisor',
+            sessionId: conversationSessionId
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          conversationSessionId = data.sessionId;
+          pollForResponse(data.sessionId, loadingId);
+        } else {
+          removeLoading(loadingId);
+          addMessage('assistant', `Error: ${data.error}`);
+        }
+      } catch (error) {
+        removeLoading(loadingId);
+        addMessage('assistant', `Error: ${error.message}`);
+      }
+    }
+
+    // Poll for response
+    async function pollForResponse(sessionId, loadingId) {
+      const maxAttempts = 30;
+      let attempts = 0;
+
+      const poll = async () => {
+        try {
+          const response = await fetch(`${window.CONFIG.API_URL}/api/chat/status/${sessionId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.status === 'completed') {
+            removeLoading(loadingId);
+            addMessage('assistant', data.response, data.routedAgentType || 'generic');
+          } else if (data.status === 'failed') {
+            removeLoading(loadingId);
+            addMessage('assistant', `Error: ${data.errorMessage || 'Request failed'}`);
+          } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(poll, 2000);
+          } else {
+            removeLoading(loadingId);
+            addMessage('assistant', 'Request timed out. Please try again.');
+          }
+        } catch (error) {
+          removeLoading(loadingId);
+          addMessage('assistant', `Error: ${error.message}`);
+        }
+      };
+
+      poll();
+    }
+
+    // Add message to UI
+    function addMessage(role, content, agentType = null) {
+      const messagesArea = document.getElementById('messagesArea');
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = role === 'user' ? (currentUser.name?.[0] || 'U') : 'AI';
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      if (agentType && role === 'assistant') {
+        const agentNames = {
+          'coding': 'Coding Agent',
+          'financial': 'Financial Agent',
+          'generic': 'General Agent',
+          'supervisor': 'Supervisor'
+        };
+        contentDiv.innerHTML = content + `<span class="agent-badge">${agentNames[agentType] || agentType}</span>`;
+      } else {
+        contentDiv.textContent = content;
+      }
+      
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(contentDiv);
+      messagesArea.appendChild(messageDiv);
+      
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      messages.push({ role, content, agentType });
+    }
+
+    // Add loading indicator
+    function addLoading() {
+      const messagesArea = document.getElementById('messagesArea');
+      
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'message assistant';
+      loadingDiv.id = 'loading-' + Date.now();
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = 'AI';
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      const loadingDots = document.createElement('div');
+      loadingDots.className = 'loading';
+      loadingDots.innerHTML = '<div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>';
+      
+      contentDiv.appendChild(loadingDots);
+      loadingDiv.appendChild(avatar);
+      loadingDiv.appendChild(contentDiv);
+      messagesArea.appendChild(loadingDiv);
+      
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      
+      return loadingDiv.id;
+    }
+
+    // Remove loading indicator
+    function removeLoading(loadingId) {
+      const loading = document.getElementById(loadingId);
+      if (loading) {
+        loading.remove();
+      }
+    }
+
+    // Show options (placeholder)
+    function showOptions() {
+      alert('Agent selection coming soon!');
+    }
+
+    // Fill test account credentials
+    function fillTestAccount(email, password) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = password;
+      document.getElementById('email').focus();
+    }
+
+    // Start app
+    initApp();
+  </script>
+</body>
+</html>
