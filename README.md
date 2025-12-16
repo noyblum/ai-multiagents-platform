@@ -1,7 +1,8 @@
 # AI Multi-Agents Platform
 
 > **Author:** Noy Blumenfeld  
-> **Repository:** [ai-multiagents-platform](https://github.com/noyblum/ai-multiagents-platform)
+> **Repository:** [ai-multiagents-platform](https://github.com/noyblum/ai-multiagents-platform)  
+> **📹 Demo Video:** [Watch the platform in action](https://drive.google.com/file/d/1RIhXt4n8l4NFaw3EXpJodSHqWKkNhmCo/view?usp=sharing)
 
 A production-ready serverless platform leveraging AWS Bedrock Agents to create an intelligent multi-agent system. The platform features a Supervisor Agent that intelligently delegates tasks to specialized agents (Coding, Financial, and Generic) based on user queries, providing accurate and context-aware responses through a modern web interface.
 
